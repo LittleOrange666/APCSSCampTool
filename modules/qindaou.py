@@ -26,11 +26,20 @@ class QingdaoUOJ:
             with open(info_file) as f:
                 self.info = json.load(f)
         if "url" not in self.info:
-            self.info["url"] = input("Please input the url of OJ: ").strip()
+            if "QingdaoUOJ_URL" in os.environ:
+                self.info["url"] = os.environ["QingdaoUOJ_URL"].strip()
+            else:
+                self.info["url"] = input("Please input the url of OJ: ").strip()
         if "account" not in self.info:
-            self.info["account"] = input("Please input the account of OJ: ").strip()
+            if "QingdaoUOJ_ACCOUNT" in os.environ:
+                self.info["account"] = os.environ["QingdaoUOJ_ACCOUNT"].strip()
+            else:
+                self.info["account"] = input("Please input the account of OJ: ").strip()
         if "password" not in self.info:
-            self.info["password"] = input("Please input the password of OJ: ").strip()
+            if "QingdaoUOJ_PASSWORD" in os.environ:
+                self.info["password"] = os.environ["QingdaoUOJ_PASSWORD"].strip()
+            else:
+                self.info["password"] = input("Please input the password of OJ: ").strip()
         url = self.info["url"]
         if url.endswith("/"):
             url = url[:-1]

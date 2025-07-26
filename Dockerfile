@@ -12,6 +12,4 @@ COPY main.py /app/
 
 COPY modules /app/modules
 
-COPY qindaou_info.json /app/
-
 CMD python3 main.py
