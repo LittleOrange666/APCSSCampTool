@@ -62,6 +62,6 @@ def query_handle(handle):
             return None
         return {
             "data": cur_data[handle],
-            "last_update": last_update_time.isoformat(),
+            "last_update": last_update_time.astimezone().strftime("%Y-%m-%d %H:%M:%S %Z"),
             "detail": detail_data[handle]
         }

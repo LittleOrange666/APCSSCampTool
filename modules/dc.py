@@ -1,4 +1,7 @@
+import asyncio
+import json
 import os
+import threading
 
 import discord
 from discord import app_commands
@@ -9,6 +12,13 @@ intents = discord.Intents.default()
 bot = discord.Client(intents=intents)
 tree = app_commands.CommandTree(bot)
 allowed_channel_ids = [1392374490553516052, 1267373672126218243]
+
+
+@bot.event
+async def on_ready():
+    slash = await tree.sync()
+    print(f"目前登入身份 --> {bot.user}")
+    print(f"載入 {len(slash)} 個斜線指令")
 
 
 def query_data(username: str) -> str:
@@ -24,13 +34,6 @@ def query_data(username: str) -> str:
 基礎題進度: {res['data'][0]}/9600，{msg1}
 進階題進度: {res['data'][1]}/7900，{msg2}"""
     return ret
-
-
-@bot.event
-async def on_ready():
-    slash = await tree.sync()
-    print(f"目前登入身份 --> {bot.user}")
-    print(f"載入 {len(slash)} 個斜線指令")
 
 
 @tree.command(name="查詢證書", description="查詢證書")
@@ -60,10 +63,58 @@ async def query_progress(interaction: discord.Interaction, username: str = None)
     detail = res['detail']
     msg = [f"使用者名稱: {username}", f"更新時間: {res['last_update']}"]
     for k, v in type_table.items():
-        if detail[k][0] > 0:
-            msg.append(f"{k} {v}: {detail[k][0]}/{detail[k][1]}, {detail[k][0] / detail[k][1] * 100:.2f}%")
+        msg.append(f"{k} {v}: {detail[k][0]}/{detail[k][1]}, {detail[k][0] / detail[k][1] * 100:.2f}%")
     await interaction.response.send_message("\n".join(msg))
 
+
+count_lock = threading.Lock()
+count_cache = {}
+count_cache_file = "data/count_cache.json"
+if os.path.exists(count_cache_file):
+    with open(count_cache_file, "r") as f:
+        count_cache = json.load(f)
+
+
+@tree.command(name="訊息排名", description="查詢目前訊息數排名")
+@app_commands.describe(channel="目標頻道")
+@app_commands.describe(output_cnt="要統計的訊息數量（預設為5，最多為10）")
+async def count_messages(interaction: discord.Interaction, channel: discord.TextChannel, output_cnt: int = 5):
+    global count_using, count_cache
+    if interaction.channel_id not in allowed_channel_ids:
+        await interaction.response.send_message("❌ 此指令僅能在指定頻道中使用。", ephemeral=True)
+        return
+    if count_lock.locked():
+        await interaction.response.send_message("❌ 正在進行訊息數統計，請稍後再試。", ephemeral=True)
+        return
+    with count_lock:
+        await interaction.response.send_message(f"正在統計頻道 <#{channel.id}> 的訊息數，請稍候...")
+        ch_id = channel.id
+        if ch_id in count_cache:
+            result = count_cache[ch_id]
+        else:
+            result = {"data": {}, "start_msg": None}
+        start_msg_obj = None if result["start_msg"] is None else await channel.fetch_message(result["start_msg"])
+        msg_cnt = 0
+        async for message in channel.history(limit=None, oldest_first=True, after=start_msg_obj):
+            if message.author.id not in result["data"]:
+                result["data"][message.author.id] = {"name": message.author.display_name, "count": 0}
+            result["data"][message.author.id]["count"] += 1
+            result["start_msg"] = message.id
+            msg_cnt += 1
+            if msg_cnt >= 100:
+                msg_cnt = 0
+                await asyncio.sleep(1)
+        res = sorted(result["data"].items(), key=lambda x: x[1]["count"], reverse=True)
+        count_cache[ch_id] = result
+        with open(count_cache_file, "w") as f:
+            json.dump(count_cache, f, indent=4)
+        if output_cnt > len(res):
+            output_cnt = len(res)
+        res = res[:output_cnt]
+        msg = [f"頻道: <#{channel.id}>"]
+        for i, (user_id, data) in enumerate(res, start=1):
+            msg.append(f"{i}. {data['name']}: {data['count']} 則訊息")
+        await interaction.edit_original_response(content="\n".join(msg))
 
 
 def main():

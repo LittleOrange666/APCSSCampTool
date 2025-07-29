@@ -16,6 +16,8 @@ services:
         dns:
           - 8.8.8.8
           - 8.8.4.4
+        volumes:
+          - ./data:/app/data
     cloudflared:
         image: cloudflare/cloudflared:latest
         command: tunnel --url http://apcs_tool:8070 --no-autoupdate run
