@@ -97,16 +97,23 @@ async def count_messages(interaction: discord.Interaction, channel: discord.Text
             result = {"data": {}, "start_msg": None}
         start_msg_obj = None if result["start_msg"] is None else await channel.fetch_message(result["start_msg"])
         msg_cnt = 0
-        async for message in channel.history(limit=None, oldest_first=True, after=start_msg_obj):
-            if message.author.id not in result["data"]:
-                result["data"][message.author.id] = {"name": message.author.display_name, "count": 0}
-            result["data"][message.author.id]["count"] += 1
-            result["data"][message.author.id]["name"] = message.author.display_name
-            result["start_msg"] = message.id
-            msg_cnt += 1
-            if msg_cnt >= 100:
-                msg_cnt = 0
-                await asyncio.sleep(1)
+        try:
+            async for message in channel.history(limit=None, oldest_first=True, after=start_msg_obj):
+                if message.author.id not in result["data"]:
+                    result["data"][message.author.id] = {"name": message.author.display_name, "count": 0}
+                result["data"][message.author.id]["count"] += 1
+                result["data"][message.author.id]["name"] = message.author.display_name
+                result["start_msg"] = message.id
+                msg_cnt += 1
+                if msg_cnt >= 100:
+                    msg_cnt = 0
+                    await asyncio.sleep(1)
+        except discord.Forbidden:
+            await interaction.edit_original_response(content=f"❌ 無法讀取頻道 <#{channel.id}> 的歷史訊息，請確認機器人有足夠的權限。")
+            return
+        except Exception as e:
+            await interaction.edit_original_response(content=f"❌ 發生錯誤: {str(e)}")
+            return
         res = sorted(result["data"].items(), key=lambda x: x[1]["count"], reverse=True)
         count_cache[ch_id] = result
         with open(count_cache_file, "w") as f:
