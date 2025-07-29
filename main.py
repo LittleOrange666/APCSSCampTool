@@ -32,9 +32,11 @@ templates = Jinja2Templates(directory="templates")
 def get_query_page(request: Request):
     return templates.TemplateResponse("query.html", {"request": request})
 
+
 @app.get("/health_check")
 async def health_check():
     return JSONResponse(content={"status": "ok"})
+
 
 if __name__ == '__main__':
     threading.Thread(target=dc.main, daemon=True).start()

@@ -3,11 +3,12 @@ import os
 import discord
 from discord import app_commands
 
-from .tool import query_handle
+from .tool import query_handle, type_table
 
 intents = discord.Intents.default()
 bot = discord.Client(intents=intents)
 tree = app_commands.CommandTree(bot)
+allowed_channel_ids = [1392374490553516052, 1267373672126218243]
 
 
 def query_data(username: str) -> str:
@@ -32,10 +33,9 @@ async def on_ready():
     print(f"載入 {len(slash)} 個斜線指令")
 
 
-@tree.command(description="查詢證書")
+@tree.command(name="查詢證書", description="查詢證書")
 @app_commands.describe(username="要查詢的使用者名稱（可選）")
-async def 查詢證書(interaction: discord.Interaction, username: str = None):
-    allowed_channel_ids = [1392374490553516052, 1267373672126218243]
+async def query_cmd(interaction: discord.Interaction, username: str = None):
     if interaction.channel_id not in allowed_channel_ids:
         await interaction.response.send_message("❌ 此指令僅能在指定頻道中使用。", ephemeral=True)
         return
@@ -43,6 +43,27 @@ async def 查詢證書(interaction: discord.Interaction, username: str = None):
         username = interaction.user.name
     result = query_data(username)
     await interaction.response.send_message(result)
+
+
+@tree.command(name="進度分析", description="進度分析")
+@app_commands.describe(username="要查詢的使用者名稱（可選）")
+async def query_progress(interaction: discord.Interaction, username: str = None):
+    if interaction.channel_id not in allowed_channel_ids:
+        await interaction.response.send_message("❌ 此指令僅能在指定頻道中使用。", ephemeral=True)
+        return
+    if username is None:
+        username = interaction.user.name
+    res = query_handle(username)
+    if res is None:
+        await interaction.response.send_message(f"❌ 使用者 {username!r} 不存在。")
+        return
+    detail = res['detail']
+    msg = [f"使用者名稱: {username}", f"更新時間: {res['last_update']}"]
+    for k, v in type_table.items():
+        if detail[k][0] > 0:
+            msg.append(f"{k} {v}: {detail[k][0]}/{detail[k][1]}, {detail[k][0] / detail[k][1] * 100:.2f}%")
+    await interaction.response.send_message("\n".join(msg))
+
 
 
 def main():
