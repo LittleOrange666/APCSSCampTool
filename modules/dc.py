@@ -9,6 +9,8 @@ from discord import app_commands
 from .tool import query_handle, type_table
 
 intents = discord.Intents.default()
+intents.members = True
+intents.message_content = True
 bot = discord.Client(intents=intents)
 tree = app_commands.CommandTree(bot)
 allowed_channel_ids = [1392374490553516052, 1267373672126218243]
@@ -99,6 +101,7 @@ async def count_messages(interaction: discord.Interaction, channel: discord.Text
             if message.author.id not in result["data"]:
                 result["data"][message.author.id] = {"name": message.author.display_name, "count": 0}
             result["data"][message.author.id]["count"] += 1
+            result["data"][message.author.id]["name"] = message.author.display_name
             result["start_msg"] = message.id
             msg_cnt += 1
             if msg_cnt >= 100:
