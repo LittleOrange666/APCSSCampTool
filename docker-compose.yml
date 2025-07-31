@@ -1,6 +1,6 @@
 services:
     apcs_tool:
-        image: littleorange666/apcs_tool:1.0.0
+        image: littleorange666/apcs_tool:1.1.6
         restart: on-failure
         healthcheck:
           test: ["CMD", "python3", "-c", "import http.client; c=http.client.HTTPConnection('localhost', 8070); c.request('GET', '/health_check'); r=c.getresponse(); exit(0) if r.status < 400 else exit(1)"]

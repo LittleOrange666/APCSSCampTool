@@ -46,8 +46,9 @@ async def query_cmd(interaction: discord.Interaction, username: str = None):
         return
     if username is None:
         username = interaction.user.name
+    await interaction.response.defer(thinking=True)
     result = query_data(username)
-    await interaction.response.send_message(result)
+    await interaction.followup.send(result)
 
 
 @tree.command(name="進度分析", description="進度分析")
@@ -58,6 +59,7 @@ async def query_progress(interaction: discord.Interaction, username: str = None)
         return
     if username is None:
         username = interaction.user.name
+    await interaction.response.defer(thinking=True)
     res = query_handle(username)
     if res is None:
         await interaction.response.send_message(f"❌ 使用者 {username!r} 不存在。")
@@ -66,7 +68,7 @@ async def query_progress(interaction: discord.Interaction, username: str = None)
     msg = [f"使用者名稱: {username}", f"更新時間: {res['last_update']}"]
     for k, v in type_table.items():
         msg.append(f"{k} {v}: {detail[k][0]}/{detail[k][1]}, {detail[k][0] / detail[k][1] * 100:.2f}%")
-    await interaction.response.send_message("\n".join(msg))
+    await interaction.followup.send("\n".join(msg))
 
 
 count_lock = threading.Lock()
@@ -89,7 +91,7 @@ async def count_messages(interaction: discord.Interaction, channel: discord.Text
         await interaction.response.send_message("❌ 正在進行訊息數統計，請稍後再試。", ephemeral=True)
         return
     with count_lock:
-        await interaction.response.send_message(f"正在統計頻道 <#{channel.id}> 的訊息數，請稍候...")
+        await interaction.response.defer(thinking=True)
         ch_id = channel.id
         if ch_id in count_cache:
             result = count_cache[ch_id]
@@ -124,7 +126,7 @@ async def count_messages(interaction: discord.Interaction, channel: discord.Text
         msg = [f"頻道: <#{channel.id}>"]
         for i, (user_id, data) in enumerate(res, start=1):
             msg.append(f"{i}. {data['name']}: {data['count']} 則訊息")
-        await interaction.edit_original_response(content="\n".join(msg))
+        await interaction.followup.send(content="\n".join(msg))
 
 
 def main():
