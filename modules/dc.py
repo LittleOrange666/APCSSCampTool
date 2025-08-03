@@ -14,6 +14,7 @@ intents.message_content = True
 bot = discord.Client(intents=intents)
 tree = app_commands.CommandTree(bot)
 allowed_channel_ids = [1392374490553516052, 1267373672126218243]
+OUTPUT_LIMIT = int(os.environ.get("OUTPUT_LIMIT", "10"))
 
 
 @bot.event
@@ -81,7 +82,7 @@ if os.path.exists(count_cache_file):
 
 @tree.command(name="訊息排名", description="查詢目前訊息數排名")
 @app_commands.describe(channel="目標頻道")
-@app_commands.describe(output_cnt="要統計的訊息數量（預設為5，最多為10）")
+@app_commands.describe(output_cnt=f"要統計的訊息數量（預設為5，最多為{OUTPUT_LIMIT}）")
 async def count_messages(interaction: discord.Interaction, channel: discord.TextChannel, output_cnt: int = 5):
     global count_using, count_cache
     if interaction.channel_id not in allowed_channel_ids:
@@ -89,6 +90,9 @@ async def count_messages(interaction: discord.Interaction, channel: discord.Text
         return
     if count_lock.locked():
         await interaction.response.send_message("❌ 正在進行訊息數統計，請稍後再試。", ephemeral=True)
+        return
+    if output_cnt <= 0:
+        await interaction.response.send_message("❌ 請輸入合法的訊息數量。", ephemeral=True)
         return
     with count_lock:
         await interaction.response.defer(thinking=True)
@@ -111,7 +115,8 @@ async def count_messages(interaction: discord.Interaction, channel: discord.Text
                     msg_cnt = 0
                     await asyncio.sleep(1)
         except discord.Forbidden:
-            await interaction.edit_original_response(content=f"❌ 無法讀取頻道 <#{channel.id}> 的歷史訊息，請確認機器人有足夠的權限。")
+            await interaction.edit_original_response(
+                content=f"❌ 無法讀取頻道 <#{channel.id}> 的歷史訊息，請確認機器人有足夠的權限。")
             return
         except Exception as e:
             await interaction.edit_original_response(content=f"❌ 發生錯誤: {str(e)}")
@@ -120,6 +125,7 @@ async def count_messages(interaction: discord.Interaction, channel: discord.Text
         count_cache[ch_id] = result
         with open(count_cache_file, "w") as f:
             json.dump(count_cache, f, indent=4)
+        output_cnt = min(output_cnt, OUTPUT_LIMIT)
         if output_cnt > len(res):
             output_cnt = len(res)
         res = res[:output_cnt]
