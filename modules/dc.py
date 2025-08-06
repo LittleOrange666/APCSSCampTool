@@ -6,7 +6,7 @@ import threading
 import discord
 from discord import app_commands
 
-from .tool import query_handle, type_table
+from .tool import query_handle, type_table, get_data
 
 intents = discord.Intents.default()
 intents.members = True
@@ -69,6 +69,33 @@ async def query_progress(interaction: discord.Interaction, username: str = None)
     msg = [f"使用者名稱: {username}", f"更新時間: {res['last_update']}"]
     for k, v in type_table.items():
         msg.append(f"{k} {v}: {detail[k][0]}/{detail[k][1]}, {detail[k][0] / detail[k][1] * 100:.2f}%")
+    await interaction.followup.send("\n".join(msg))
+
+
+@tree.command(name="組別排行", description="組別排行")
+@app_commands.choices(group=[
+    app_commands.Choice(name="基礎班", value="easy"),
+    app_commands.Choice(name="進階班", value="hard"),
+])
+@app_commands.describe(group="要查詢的組別", count=f"要顯示的前幾名（預設為5，最多為{OUTPUT_LIMIT}）")
+async def group_ranking(interaction: discord.Interaction, group: app_commands.Choice[str], count: int = 5):
+    if interaction.channel_id not in allowed_channel_ids:
+        await interaction.response.send_message("❌ 此指令僅能在指定頻道中使用。", ephemeral=True)
+        return
+    await interaction.response.defer(thinking=True)
+    if count <= 0:
+        await interaction.followup.send("❌ 請輸入合法的數量。")
+        return
+    count = min(count, OUTPUT_LIMIT)
+    idx = 0 if group.value == "easy" else 1
+    data = get_data()
+    res = [(v[idx], k) for k, v in data.items() if v[idx] > 0]
+    res.sort(reverse=True, key=lambda x: x[0])
+    count = min(count, len(res))
+    res = res[:count]
+    msg = [f"組別: {group.name}"]
+    for i, (score, username) in enumerate(res, start=1):
+        msg.append(f"{i}. {username}: {score} 分")
     await interaction.followup.send("\n".join(msg))
 
 

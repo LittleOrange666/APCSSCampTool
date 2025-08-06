@@ -51,17 +51,22 @@ last_update_time = datetime.min
 lock = threading.Lock()
 
 
-def query_handle(handle):
+def get_data():
     global last_update_time
     with lock:
         now = datetime.now()
         if now - last_update_time > timedelta(minutes=10):
             update_data()
             last_update_time = now
-        if handle not in cur_data:
-            return None
-        return {
-            "data": cur_data[handle],
-            "last_update": last_update_time.astimezone().strftime("%Y-%m-%d %H:%M:%S %Z"),
-            "detail": detail_data[handle]
-        }
+        return cur_data
+
+
+def query_handle(handle):
+    get_data()
+    if handle not in cur_data:
+        return None
+    return {
+        "data": cur_data[handle],
+        "last_update": last_update_time.astimezone().strftime("%Y-%m-%d %H:%M:%S %Z"),
+        "detail": detail_data[handle]
+    }
