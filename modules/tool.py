@@ -1,5 +1,5 @@
 import threading
-from datetime import datetime, timedelta, tzinfo, timezone
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from .qindaou import QingdaoUOJ
@@ -13,6 +13,7 @@ type_table = {'A': '變數/輸入輸出', 'B': '條件判斷/迴圈', 'C': '陣�
 cur_data = {}
 detail_data = {}
 detail_max = {k: 0 for k in type_table.keys()}
+cur_time_zone = ZoneInfo("Asia/Taipei")
 
 
 def update_data():
@@ -48,14 +49,14 @@ def update_data():
         detail_data[handle] = detail
 
 
-last_update_time = datetime.min
+last_update_time = datetime.now(cur_time_zone) - timedelta(days=1)
 lock = threading.Lock()
 
 
 def get_data():
     global last_update_time
     with lock:
-        now = datetime.now(ZoneInfo("Asia/Taipei"))
+        now = datetime.now(cur_time_zone)
         if now - last_update_time > timedelta(minutes=10):
             update_data()
             last_update_time = now

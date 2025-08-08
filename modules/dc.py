@@ -2,6 +2,7 @@ import asyncio
 import json
 import os
 import threading
+import traceback
 
 import discord
 from discord import app_commands
@@ -48,8 +49,12 @@ async def query_cmd(interaction: discord.Interaction, username: str = None):
     if username is None:
         username = interaction.user.name
     await interaction.response.defer(thinking=True)
-    result = query_data(username)
-    await interaction.followup.send(result)
+    try:
+        result = query_data(username)
+        await interaction.followup.send(result)
+    except Exception as e:
+        traceback.print_exception(e)
+        await interaction.followup.send(content=f"❌ 發生錯誤，請洽詢管理員")
 
 
 @tree.command(name="進度分析", description="進度分析")
@@ -61,15 +66,19 @@ async def query_progress(interaction: discord.Interaction, username: str = None)
     if username is None:
         username = interaction.user.name
     await interaction.response.defer(thinking=True)
-    res = query_handle(username)
-    if res is None:
-        await interaction.response.send_message(f"❌ 使用者 {username!r} 不存在。")
-        return
-    detail = res['detail']
-    msg = [f"使用者名稱: {username}", f"更新時間: {res['last_update']}"]
-    for k, v in type_table.items():
-        msg.append(f"{k} {v}: {detail[k][0]}/{detail[k][1]}, {detail[k][0] / detail[k][1] * 100:.2f}%")
-    await interaction.followup.send("\n".join(msg))
+    try:
+        res = query_handle(username)
+        if res is None:
+            await interaction.response.send_message(f"❌ 使用者 {username!r} 不存在。")
+            return
+        detail = res['detail']
+        msg = [f"使用者名稱: {username}", f"更新時間: {res['last_update']}"]
+        for k, v in type_table.items():
+            msg.append(f"{k} {v}: {detail[k][0]}/{detail[k][1]}, {detail[k][0] / detail[k][1] * 100:.2f}%")
+        await interaction.followup.send("\n".join(msg))
+    except Exception as e:
+        traceback.print_exception(e)
+        await interaction.followup.send(content=f"❌ 發生錯誤，請洽詢管理員")
 
 
 @tree.command(name="組別排行", description="組別排行")
@@ -83,20 +92,24 @@ async def group_ranking(interaction: discord.Interaction, group: app_commands.Ch
         await interaction.response.send_message("❌ 此指令僅能在指定頻道中使用。", ephemeral=True)
         return
     await interaction.response.defer(thinking=True)
-    if count <= 0:
-        await interaction.followup.send("❌ 請輸入合法的數量。")
-        return
-    count = min(count, OUTPUT_LIMIT)
-    idx = 0 if group.value == "easy" else 1
-    data = get_data()
-    res = [(v[idx], k) for k, v in data.items() if v[idx] > 0]
-    res.sort(reverse=True, key=lambda x: x[0])
-    count = min(count, len(res))
-    res = res[:count]
-    msg = [f"組別: {group.name}"]
-    for i, (score, username) in enumerate(res, start=1):
-        msg.append(f"{i}. {username}: {score} 分")
-    await interaction.followup.send("\n".join(msg))
+    try:
+        if count <= 0:
+            await interaction.followup.send("❌ 請輸入合法的數量。")
+            return
+        count = min(count, OUTPUT_LIMIT)
+        idx = 0 if group.value == "easy" else 1
+        data = get_data()
+        res = [(v[idx], k) for k, v in data.items() if v[idx] > 0]
+        res.sort(reverse=True, key=lambda x: x[0])
+        count = min(count, len(res))
+        res = res[:count]
+        msg = [f"組別: {group.name}"]
+        for i, (score, username) in enumerate(res, start=1):
+            msg.append(f"{i}. {username}: {score} 分")
+        await interaction.followup.send("\n".join(msg))
+    except Exception as e:
+        traceback.print_exception(e)
+        await interaction.followup.send(content=f"❌ 發生錯誤，請洽詢管理員")
 
 
 count_lock = threading.Lock()
@@ -123,43 +136,47 @@ async def count_messages(interaction: discord.Interaction, channel: discord.Text
         return
     with count_lock:
         await interaction.response.defer(thinking=True)
-        ch_id = channel.id
-        if ch_id in count_cache:
-            result = count_cache[ch_id]
-        else:
-            result = {"data": {}, "start_msg": None}
-        start_msg_obj = None if result["start_msg"] is None else await channel.fetch_message(result["start_msg"])
-        msg_cnt = 0
         try:
-            async for message in channel.history(limit=None, oldest_first=True, after=start_msg_obj):
-                if message.author.id not in result["data"]:
-                    result["data"][message.author.id] = {"name": message.author.display_name, "count": 0}
-                result["data"][message.author.id]["count"] += 1
-                result["data"][message.author.id]["name"] = message.author.display_name
-                result["start_msg"] = message.id
-                msg_cnt += 1
-                if msg_cnt >= 100:
-                    msg_cnt = 0
-                    await asyncio.sleep(1)
-        except discord.Forbidden:
-            await interaction.edit_original_response(
-                content=f"❌ 無法讀取頻道 <#{channel.id}> 的歷史訊息，請確認機器人有足夠的權限。")
-            return
+            ch_id = channel.id
+            if ch_id in count_cache:
+                result = count_cache[ch_id]
+            else:
+                result = {"data": {}, "start_msg": None}
+            start_msg_obj = None if result["start_msg"] is None else await channel.fetch_message(result["start_msg"])
+            msg_cnt = 0
+            try:
+                async for message in channel.history(limit=None, oldest_first=True, after=start_msg_obj):
+                    if message.author.id not in result["data"]:
+                        result["data"][message.author.id] = {"name": message.author.display_name, "count": 0}
+                    result["data"][message.author.id]["count"] += 1
+                    result["data"][message.author.id]["name"] = message.author.display_name
+                    result["start_msg"] = message.id
+                    msg_cnt += 1
+                    if msg_cnt >= 100:
+                        msg_cnt = 0
+                        await asyncio.sleep(1)
+            except discord.Forbidden:
+                await interaction.edit_original_response(
+                    content=f"❌ 無法讀取頻道 <#{channel.id}> 的歷史訊息，請確認機器人有足夠的權限。")
+                return
+            except Exception as e:
+                await interaction.edit_original_response(content=f"❌ 發生錯誤: {str(e)}")
+                return
+            res = sorted(result["data"].items(), key=lambda x: x[1]["count"], reverse=True)
+            count_cache[ch_id] = result
+            with open(count_cache_file, "w") as f:
+                json.dump(count_cache, f, indent=4)
+            output_cnt = min(output_cnt, OUTPUT_LIMIT)
+            if output_cnt > len(res):
+                output_cnt = len(res)
+            res = res[:output_cnt]
+            msg = [f"頻道: <#{channel.id}>"]
+            for i, (user_id, data) in enumerate(res, start=1):
+                msg.append(f"{i}. {data['name']}: {data['count']} 則訊息")
+            await interaction.followup.send(content="\n".join(msg))
         except Exception as e:
-            await interaction.edit_original_response(content=f"❌ 發生錯誤: {str(e)}")
-            return
-        res = sorted(result["data"].items(), key=lambda x: x[1]["count"], reverse=True)
-        count_cache[ch_id] = result
-        with open(count_cache_file, "w") as f:
-            json.dump(count_cache, f, indent=4)
-        output_cnt = min(output_cnt, OUTPUT_LIMIT)
-        if output_cnt > len(res):
-            output_cnt = len(res)
-        res = res[:output_cnt]
-        msg = [f"頻道: <#{channel.id}>"]
-        for i, (user_id, data) in enumerate(res, start=1):
-            msg.append(f"{i}. {data['name']}: {data['count']} 則訊息")
-        await interaction.followup.send(content="\n".join(msg))
+            traceback.print_exception(e)
+            await interaction.followup.send(content=f"❌ 發生錯誤，請洽詢管理員")
 
 
 def main():
