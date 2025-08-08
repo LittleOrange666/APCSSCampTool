@@ -12,4 +12,4 @@ COPY main.py /app/
 
 COPY modules /app/modules
 
-CMD python3 main.py
+CMD ["python3", "main.py"]

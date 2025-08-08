@@ -1,5 +1,6 @@
 import threading
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, tzinfo, timezone
+from zoneinfo import ZoneInfo
 
 from .qindaou import QingdaoUOJ
 
@@ -54,7 +55,7 @@ lock = threading.Lock()
 def get_data():
     global last_update_time
     with lock:
-        now = datetime.now()
+        now = datetime.now(ZoneInfo("Asia/Taipei"))
         if now - last_update_time > timedelta(minutes=10):
             update_data()
             last_update_time = now
@@ -67,6 +68,6 @@ def query_handle(handle):
         return None
     return {
         "data": cur_data[handle],
-        "last_update": last_update_time.astimezone().strftime("%Y-%m-%d %H:%M:%S %Z"),
+        "last_update": last_update_time.strftime("%Y-%m-%d %H:%M:%S %Z"),
         "detail": detail_data[handle]
     }
