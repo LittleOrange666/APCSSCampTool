@@ -6,8 +6,10 @@ import traceback
 
 import discord
 from discord import app_commands
+from discord.ui import Modal, TextInput
 
 from .tool import query_handle, type_table, get_data
+from .submit import run
 
 intents = discord.Intents.default()
 intents.members = True
@@ -177,6 +179,50 @@ async def count_messages(interaction: discord.Interaction, channel: discord.Text
         except Exception as e:
             traceback.print_exception(e)
             await interaction.followup.send(content=f"❌ 發生錯誤，請洽詢管理員")
+
+
+class CodeModal(Modal, title="輸入程式碼"):
+    code = TextInput(label="程式碼內容", style=discord.TextStyle.paragraph, placeholder="貼上你的程式碼...",
+                     max_length=4000)
+    inp = TextInput(
+        label="輸入內容",
+        style=discord.TextStyle.paragraph,
+        placeholder="貼上你的輸入內容...",
+        required=False,
+        max_length=4000
+    )
+
+    def __init__(self, lang: str):
+        super().__init__()
+        self.lang = lang
+        self.code.label = f"程式碼 ({lang})"
+        self.code.placeholder = f"請輸入 {lang} 程式碼..."
+        self.inp.label = "輸入內容（可選）"
+        self.inp.placeholder = "如果需要，請輸入測試用的輸入內容..."
+
+    async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.defer(thinking=True)
+        code_content = self.code.value.strip()
+        if not code_content:
+            await interaction.followup.send("❌ 程式碼內容不能為空。", ephemeral=True)
+            return
+        inp_content = self.inp.value.strip() if self.inp.value else ""
+        res = await run(code_content, self.lang, inp_content)
+        formatted_code = f"Code:\n```{self.lang}\n{code_content}\n```\nInput:\n```\n{inp_content}\n```\n{res}"
+        await interaction.response.send_message(formatted_code)
+
+
+@tree.command(name="執行程式", description="輸入程式碼並執行")
+@app_commands.choices(lang=[
+    app_commands.Choice(name="C++", value="cpp"),
+    app_commands.Choice(name="Python", value="python"),
+])
+@app_commands.describe(lang="要選擇的語言")
+async def code_command(interaction: discord.Interaction, lang: app_commands.Choice[str]):
+    if interaction.channel_id not in allowed_channel_ids:
+        await interaction.response.send_message("❌ 此指令僅能在指定頻道中使用。", ephemeral=True)
+        return
+    await interaction.response.send_modal(CodeModal(lang.value))
 
 
 def main():

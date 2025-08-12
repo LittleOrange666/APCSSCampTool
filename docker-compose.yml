@@ -1,6 +1,6 @@
 services:
     apcs_tool:
-        image: littleorange666/apcs_tool:1.1.9
+        image: littleorange666/apcs_tool:1.1.11
         restart: on-failure
         healthcheck:
           test: ["CMD", "python3", "-c", "import http.client; c=http.client.HTTPConnection('localhost', 8070); c.request('GET', '/health_check'); r=c.getresponse(); exit(0) if r.status < 400 else exit(1)"]
@@ -13,6 +13,9 @@ services:
           - QingdaoUOJ_URL=https://apcs-simulation.com
           - QingdaoUOJ_ACCOUNT=${QingdaoUOJ_ACCOUNT}
           - QingdaoUOJ_PASSWORD=${QingdaoUOJ_PASSWORD}
+          - ORANGEJUDGE_URL=${ORANGEJUDGE_URL}
+          - ORANGEJUDGE_USERNAME=${ORANGEJUDGE_USERNAME}
+          - ORANGEJUDGE_API_KEY=${ORANGEJUDGE_API_KEY}
           - OUTPUT_LIMIT=10
         dns:
           - 8.8.8.8
