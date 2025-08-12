@@ -5,9 +5,9 @@ import httpx
 
 
 async def run(code, lang, inp):
-    base_url = os.environ["ORANGEJUDGE_URL"]
-    username = os.environ["ORANGEJUDGE_USERNAME"]
-    api_key = os.environ["ORANGEJUDGE_API_KEY"]
+    base_url = os.environ["ORANGEJUDGE_URL"].strip()
+    username = os.environ["ORANGEJUDGE_USERNAME"].strip()
+    api_key = os.environ["ORANGEJUDGE_API_KEY"].strip()
     url = base_url+"/api/submit"
     headers = {
         "x-api-key": api_key

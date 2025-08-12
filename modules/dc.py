@@ -180,6 +180,11 @@ async def count_messages(interaction: discord.Interaction, channel: discord.Text
             traceback.print_exception(e)
             await interaction.followup.send(content=f"❌ 發生錯誤，請洽詢管理員")
 
+lang_full_names = {
+    "cpp": "C++17",
+    "python": "Python3.10.12",
+}
+
 
 class CodeModal(Modal, title="輸入程式碼"):
     code = TextInput(label="程式碼內容", style=discord.TextStyle.paragraph, placeholder="貼上你的程式碼...",
@@ -207,9 +212,12 @@ class CodeModal(Modal, title="輸入程式碼"):
             await interaction.followup.send("❌ 程式碼內容不能為空。", ephemeral=True)
             return
         inp_content = self.inp.value.strip() if self.inp.value else ""
-        res = await run(code_content, self.lang, inp_content)
-        formatted_code = f"Code:\n```{self.lang}\n{code_content}\n```\nInput:\n```\n{inp_content}\n```\n{res}"
-        await interaction.response.send_message(formatted_code)
+        res = await run(code_content, lang_full_names[self.lang], inp_content)
+        results = [f"Code:\n```{self.lang}\n{code_content}\n```"]
+        if inp_content:
+            results.append(f"Input:\n```\n{inp_content}\n```")
+        results.append(res)
+        await interaction.followup.send("\n".join(results))
 
 
 @tree.command(name="執行程式", description="輸入程式碼並執行")
