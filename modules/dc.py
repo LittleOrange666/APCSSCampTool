@@ -71,7 +71,7 @@ async def query_progress(interaction: discord.Interaction, username: str = None)
     try:
         res = query_handle(username)
         if res is None:
-            await interaction.response.send_message(f"❌ 使用者 {username!r} 不存在。")
+            await interaction.followup.send(f"❌ 使用者 {username!r} 不存在。")
             return
         detail = res['detail']
         msg = [f"使用者名稱: {username}", f"更新時間: {res['last_update']}"]
