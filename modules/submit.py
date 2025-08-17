@@ -8,7 +8,7 @@ async def run(code, lang, inp):
     base_url = os.environ["ORANGEJUDGE_URL"].strip()
     username = os.environ["ORANGEJUDGE_USERNAME"].strip()
     api_key = os.environ["ORANGEJUDGE_API_KEY"].strip()
-    url = base_url+"/api/submit"
+    url = base_url+"/api/submission"
     headers = {
         "api-key": api_key
     }
