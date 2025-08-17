@@ -10,7 +10,7 @@ async def run(code, lang, inp):
     api_key = os.environ["ORANGEJUDGE_API_KEY"].strip()
     url = base_url+"/api/submit"
     headers = {
-        "x-api-key": api_key
+        "api-key": api_key
     }
     async with (httpx.AsyncClient() as client):
         res = await client.post(url, data={
