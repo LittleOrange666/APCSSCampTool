@@ -207,17 +207,21 @@ class CodeModal(Modal, title="輸入程式碼"):
 
     async def on_submit(self, interaction: discord.Interaction):
         await interaction.response.defer(thinking=True)
-        code_content = self.code.value.strip()
-        if not code_content:
-            await interaction.followup.send("❌ 程式碼內容不能為空。", ephemeral=True)
-            return
-        inp_content = self.inp.value.strip() if self.inp.value else ""
-        res = await run(code_content, lang_full_names[self.lang], inp_content)
-        results = [f"Code:\n```{self.lang}\n{code_content}\n```"]
-        if inp_content:
-            results.append(f"Input:\n```\n{inp_content}\n```")
-        results.append(res)
-        await interaction.followup.send("\n".join(results))
+        try:
+            code_content = self.code.value.strip()
+            if not code_content:
+                await interaction.followup.send("❌ 程式碼內容不能為空。", ephemeral=True)
+                return
+            inp_content = self.inp.value.strip() if self.inp.value else ""
+            res = await run(code_content, lang_full_names[self.lang], inp_content)
+            results = [f"Code:\n```{self.lang}\n{code_content}\n```"]
+            if inp_content:
+                results.append(f"Input:\n```\n{inp_content}\n```")
+            results.append(res)
+            await interaction.followup.send("\n".join(results))
+        except Exception as e:
+            traceback.print_exception(e)
+            await interaction.followup.send(content=f"❌ 發生錯誤，請洽詢管理員")
 
 
 @tree.command(name="執行程式", description="輸入程式碼並執行")
