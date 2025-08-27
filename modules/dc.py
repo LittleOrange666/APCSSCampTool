@@ -11,12 +11,11 @@ from discord.ui import Modal, TextInput
 from .tool import query_handle, type_table, get_data
 from .submit import run
 
-intents = discord.Intents.default()
-intents.members = True
-intents.message_content = True
+intents = discord.Intents.all()
 bot = discord.Client(intents=intents)
 tree = app_commands.CommandTree(bot)
 allowed_channel_ids = [1392374490553516052, 1267373672126218243]
+allowed_any_channel = True
 OUTPUT_LIMIT = int(os.environ.get("OUTPUT_LIMIT", "10"))
 
 
@@ -45,7 +44,7 @@ def query_data(username: str) -> str:
 @tree.command(name="查詢證書", description="查詢證書")
 @app_commands.describe(username="要查詢的使用者名稱（可選）")
 async def query_cmd(interaction: discord.Interaction, username: str = None):
-    if interaction.channel_id not in allowed_channel_ids:
+    if interaction.channel_id not in allowed_channel_ids and not allowed_any_channel:
         await interaction.response.send_message("❌ 此指令僅能在指定頻道中使用。", ephemeral=True)
         return
     if username is None:
@@ -62,7 +61,7 @@ async def query_cmd(interaction: discord.Interaction, username: str = None):
 @tree.command(name="進度分析", description="進度分析")
 @app_commands.describe(username="要查詢的使用者名稱（可選）")
 async def query_progress(interaction: discord.Interaction, username: str = None):
-    if interaction.channel_id not in allowed_channel_ids:
+    if interaction.channel_id not in allowed_channel_ids and not allowed_any_channel:
         await interaction.response.send_message("❌ 此指令僅能在指定頻道中使用。", ephemeral=True)
         return
     if username is None:
@@ -90,7 +89,7 @@ async def query_progress(interaction: discord.Interaction, username: str = None)
 ])
 @app_commands.describe(group="要查詢的組別", count=f"要顯示的前幾名（預設為5，最多為{OUTPUT_LIMIT}）")
 async def group_ranking(interaction: discord.Interaction, group: app_commands.Choice[str], count: int = 5):
-    if interaction.channel_id not in allowed_channel_ids:
+    if interaction.channel_id not in allowed_channel_ids and not allowed_any_channel:
         await interaction.response.send_message("❌ 此指令僅能在指定頻道中使用。", ephemeral=True)
         return
     await interaction.response.defer(thinking=True)
@@ -127,7 +126,7 @@ if os.path.exists(count_cache_file):
 @app_commands.describe(output_cnt=f"要統計的訊息數量（預設為5，最多為{OUTPUT_LIMIT}）")
 async def count_messages(interaction: discord.Interaction, channel: discord.TextChannel, output_cnt: int = 5):
     global count_using, count_cache
-    if interaction.channel_id not in allowed_channel_ids:
+    if interaction.channel_id not in allowed_channel_ids and not allowed_any_channel:
         await interaction.response.send_message("❌ 此指令僅能在指定頻道中使用。", ephemeral=True)
         return
     if count_lock.locked():
@@ -231,7 +230,7 @@ class CodeModal(Modal, title="輸入程式碼"):
 ])
 @app_commands.describe(lang="要選擇的語言")
 async def code_command(interaction: discord.Interaction, lang: app_commands.Choice[str]):
-    if interaction.channel_id not in allowed_channel_ids:
+    if interaction.channel_id not in allowed_channel_ids and not allowed_any_channel:
         await interaction.response.send_message("❌ 此指令僅能在指定頻道中使用。", ephemeral=True)
         return
     await interaction.response.send_modal(CodeModal(lang.value))
