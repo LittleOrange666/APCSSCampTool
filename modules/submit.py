@@ -8,7 +8,7 @@ async def run(code, lang, inp):
     base_url = os.environ["ORANGEJUDGE_URL"].strip()
     username = os.environ["ORANGEJUDGE_USERNAME"].strip()
     api_key = os.environ["ORANGEJUDGE_API_KEY"].strip()
-    url = base_url+"/api/submission"
+    url = base_url + "/api/submission"
     headers = {
         "api-key": api_key
     }
@@ -35,8 +35,7 @@ async def run(code, lang, inp):
                 if data["data"]["completed"]:
                     res = data["data"]
                     if res["ce_msg"]:
-                        return "Compilation Error:\n```\n" + res["ce_msg"] + "```"
-                    if res["result"][:2] == "OK":
-                        return res["result"]+"\nOutput:\n```\n" + res["output"] + "```"
-                    return "Result: " + res["result"]
+                        return "Compilation Error:\n```\n" + res["ce_msg"].replace("`", "`\u200b") + "```"
+                    return "Result: " + res["result"] + "\nOutput:\n```\n" + res["output"].replace("`", "`\u200b") \
+                        + "```" + "\nStderr:\n```\n" + res["error"].replace("`", "`\u200b") + "```"
         return "Running time out."

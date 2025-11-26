@@ -213,8 +213,10 @@ class CodeModal(Modal, title="輸入程式碼"):
                 return
             inp_content = self.inp.value.strip() if self.inp.value else ""
             res = await run(code_content, lang_full_names[self.lang], inp_content)
+            code_content = code_content.replace("`", "`\u200b")
             results = [f"Code:\n```{self.lang}\n{code_content}\n```"]
             if inp_content:
+                inp_content = inp_content.replace("`", "`\u200b")
                 results.append(f"Input:\n```\n{inp_content}\n```")
             results.append(res)
             await interaction.followup.send("\n".join(results))
