@@ -36,6 +36,10 @@ async def run(code, lang, inp):
                     res = data["data"]
                     if res["ce_msg"]:
                         return "Compilation Error:\n```\n" + res["ce_msg"].replace("`", "`\u200b") + "```"
-                    return "Result: " + res["result"] + "\nOutput:\n```\n" + res["output"].replace("`", "`\u200b") \
-                        + "```" + "\nStderr:\n```\n" + res["error"].replace("`", "`\u200b") + "```"
+                    ret = "Result: " + res["result"]
+                    if res["output"].strip():
+                        ret += "\nOutput:\n```\n" + res["output"].replace("`", "`\u200b") + "```"
+                    if res["error"].strip():
+                        ret += "\nStderr:\n```\n" + res["error"].replace("`", "`\u200b") + "```"
+                    return ret
         return "Running time out."

@@ -219,7 +219,14 @@ class CodeModal(Modal, title="輸入程式碼"):
                 inp_content = inp_content.replace("`", "`\u200b")
                 results.append(f"Input:\n```\n{inp_content}\n```")
             results.append(res)
-            await interaction.followup.send("\n".join(results))
+            result_text = "\n".join(results)
+            if len(result_text) > 2000:
+                result_text = result_text[:1970]
+                if result_text.count("```") % 2 == 1:
+                    result_text += "\n...\n```\n...(truncated)"
+                else:
+                    result_text += "\n...(truncated)"
+            await interaction.followup.send(result_text)
         except Exception as e:
             traceback.print_exception(e)
             await interaction.followup.send(content=f"❌ 發生錯誤，請洽詢管理員")
