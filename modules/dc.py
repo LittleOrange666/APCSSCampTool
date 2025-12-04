@@ -182,6 +182,7 @@ async def count_messages(interaction: discord.Interaction, channel: discord.Text
 lang_full_names = {
     "cpp": "C++17",
     "python": "Python3.10.12",
+    "java": "Java8",
 }
 
 
@@ -234,8 +235,9 @@ class CodeModal(Modal, title="輸入程式碼"):
 
 @tree.command(name="執行程式", description="輸入程式碼並執行")
 @app_commands.choices(lang=[
-    app_commands.Choice(name="C++", value="cpp"),
-    app_commands.Choice(name="Python", value="python"),
+    app_commands.Choice(name="C++17", value="cpp"),
+    app_commands.Choice(name="Python3.10.12", value="python"),
+    app_commands.Choice(name="Java8", value="java"),
 ])
 @app_commands.describe(lang="要選擇的語言")
 async def code_command(interaction: discord.Interaction, lang: app_commands.Choice[str]):
