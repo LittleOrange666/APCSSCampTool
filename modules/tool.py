@@ -23,11 +23,14 @@ cur_data = {}
 detail_data = {}
 detail_max = {k: 0 for k in type_table.keys()}
 cur_time_zone = ZoneInfo("Asia/Taipei")
+cache_file = "cache.json"
+if "OJ_CACHE_FILE" in os.environ:
+    cache_file = os.environ["OJ_CACHE_FILE"].strip()
 
 
 def update_data():
     if freeze:
-        with open("cache.json", encoding="utf-8") as f:
+        with open(cache_file, encoding="utf-8") as f:
             data = json.load(f)
             global cur_data, detail_data
             cur_data = data["cur_data"]
