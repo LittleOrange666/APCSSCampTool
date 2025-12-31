@@ -1,6 +1,8 @@
+import os
 import threading
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
+import json
 
 from .qindaou import QingdaoUOJ
 
@@ -10,6 +12,13 @@ type_table = {'A': '變數/輸入輸出', 'B': '條件判斷/迴圈', 'C': '陣�
               'G': '資料結構', 'L': '實作與除錯技巧', 'H': '考古題解析 (p1,p2)', 'F': '時間複雜度', 'I': '枚舉/二分搜',
               'J': '貪心', 'K': '圖論', 'M': '動態規劃', 'N': '考古題解析 (p3, p4)', 'Z': '模擬測驗 (p1, p2, p3, p4)'}
 
+freeze_time = None
+freeze = False
+
+if "OJ_FREEZE_TIME" in os.environ:
+    freeze_time = datetime.fromisoformat(os.environ["OJ_FREEZE_TIME"].strip()).replace(tzinfo=ZoneInfo("Asia/Taipei"))
+    freeze = True
+
 cur_data = {}
 detail_data = {}
 detail_max = {k: 0 for k in type_table.keys()}
@@ -17,6 +26,13 @@ cur_time_zone = ZoneInfo("Asia/Taipei")
 
 
 def update_data():
+    if freeze:
+        with open("cache.json", encoding="utf-8") as f:
+            data = json.load(f)
+            global cur_data, detail_data
+            cur_data = data["cur_data"]
+            detail_data = data["detail_data"]
+        return
     problems_data = oj.get_contest_problems("29")
     ranking = oj.get_ranking("29")
     problems = {}
@@ -59,7 +75,10 @@ def get_data():
         now = datetime.now(cur_time_zone)
         if now - last_update_time > timedelta(minutes=10):
             update_data()
-            last_update_time = now
+            if freeze:
+                last_update_time = freeze_time
+            else:
+                last_update_time = now
         return cur_data
 
 
