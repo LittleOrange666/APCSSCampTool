@@ -14,6 +14,7 @@ type_table = {'A': '變數/輸入輸出', 'B': '條件判斷/迴圈', 'C': '陣�
 
 freeze_time = None
 freeze = False
+OJ_CONTEST_ID = os.environ.get("OJ_CONTEST_ID", "29").strip()
 
 if "OJ_FREEZE_TIME" in os.environ:
     freeze_time = datetime.fromisoformat(os.environ["OJ_FREEZE_TIME"].strip()).replace(tzinfo=ZoneInfo("Asia/Taipei"))
@@ -36,8 +37,8 @@ def update_data():
             cur_data = data["cur_data"]
             detail_data = data["detail_data"]
         return
-    problems_data = oj.get_contest_problems("29")
-    ranking = oj.get_ranking("29")
+    problems_data = oj.get_contest_problems(OJ_CONTEST_ID)
+    ranking = oj.get_ranking(OJ_CONTEST_ID)
     problems = {}
     for k in detail_max:
         detail_max[k] = 0
