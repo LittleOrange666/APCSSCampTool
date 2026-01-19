@@ -15,6 +15,8 @@ intents = discord.Intents.all()
 bot = discord.Client(intents=intents)
 tree = app_commands.CommandTree(bot)
 allowed_channel_ids = [1392374490553516052, 1267373672126218243]
+if "ALLOWED_CHANNEL_IDS" in os.environ:
+    allowed_channel_ids = [int(x) for x in os.environ["ALLOWED_CHANNEL_IDS"].strip().split(",") if x.strip().isdigit()]
 allowed_any_channel = True
 OUTPUT_LIMIT = int(os.environ.get("OUTPUT_LIMIT", "10"))
 

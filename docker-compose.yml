@@ -18,6 +18,7 @@ services:
           - ORANGEJUDGE_API_KEY=${ORANGEJUDGE_API_KEY}
           - OUTPUT_LIMIT=10
           - OJ_CONTEST_ID=${OJ_CONTEST_ID}
+          - ALLOWED_CHANNEL_IDS=${ALLOWED_CHANNEL_IDS}
         dns:
           - 8.8.8.8
           - 8.8.4.4
