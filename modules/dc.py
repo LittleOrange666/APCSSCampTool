@@ -249,6 +249,13 @@ async def code_command(interaction: discord.Interaction, lang: app_commands.Choi
     await interaction.response.send_modal(CodeModal(lang.value))
 
 
+@tree.command(name="破冰", description="破冰")
+async def ice_breaker(interaction: discord.Interaction):
+    if interaction.channel_id not in allowed_channel_ids and not allowed_any_channel:
+        await interaction.response.send_message("❌ 此指令僅能在指定頻道中使用。", ephemeral=True)
+        return
+    await interaction.response.send_message("Ciallo～(∠・ω< )⌒★")
+
 def main():
     bot.run(os.environ["DISCORD_BOT_TOKEN"])
 
