@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import re
 import threading
 import traceback
 
@@ -19,6 +20,8 @@ if "ALLOWED_CHANNEL_IDS" in os.environ:
     allowed_channel_ids = [int(x) for x in os.environ["ALLOWED_CHANNEL_IDS"].strip().split(",") if x.strip().isdigit()]
 allowed_any_channel = True
 OUTPUT_LIMIT = int(os.environ.get("OUTPUT_LIMIT", "10"))
+
+username_pattern = os.environ.get("USERNAME_PATTERN", "aw(p|o)26[0-9]{2}")
 
 
 @bot.event
@@ -42,18 +45,17 @@ def query_data(username: str) -> str:
 進階題進度: {res['data'][1]}/7900，{msg2}"""
     return ret
 
-
 @tree.command(name="查詢證書", description="查詢證書")
-@app_commands.describe(username="要查詢的使用者名稱（可選）")
-async def query_cmd(interaction: discord.Interaction, username: str = None):
+@app_commands.describe(username="要查詢的使用者名稱")
+async def query_cmd(interaction: discord.Interaction, username: str):
     if interaction.channel_id not in allowed_channel_ids and not allowed_any_channel:
         await interaction.response.send_message("❌ 此指令僅能在指定頻道中使用。", ephemeral=True)
         return
-    if username is None:
-        username = interaction.user.name
     await interaction.response.defer(thinking=True)
     try:
         result = query_data(username)
+        if not re.match(username_pattern, username):
+            result = "[警告] 此使用者名稱不是標準帳號，無法用於申請證書\n" + result
         await interaction.followup.send(result)
     except Exception as e:
         traceback.print_exception(e)
