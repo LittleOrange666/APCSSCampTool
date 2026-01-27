@@ -41,8 +41,8 @@ def query_data(username: str) -> str:
                                             1] >= 7900 else f"進階班結業證書尚未達成，還差{7900 - res['data'][1]}分。"
     ret = f"""更新時間: {res['last_update']}
 使用者名稱: {username}
-基礎題進度: {res['data'][0]}/9600，{msg1}
-進階題進度: {res['data'][1]}/7900，{msg2}"""
+基礎題進度: {res['data'][0]}/???? (證書標準未定)
+進階題進度: {res['data'][1]}/???? (證書標準未定)"""
     return ret
 
 @tree.command(name="查詢證書", description="查詢證書")
@@ -54,8 +54,8 @@ async def query_cmd(interaction: discord.Interaction, username: str):
     await interaction.response.defer(thinking=True)
     try:
         result = query_data(username)
-        if not re.match(username_pattern, username):
-            result = "[警告] 此使用者名稱不是標準帳號，無法用於申請證書\n" + result
+        # if not re.match(username_pattern, username):
+        #    result = "[警告] 此使用者名稱不是標準帳號，無法用於申請證書\n" + result
         await interaction.followup.send(result)
     except Exception as e:
         traceback.print_exception(e)
