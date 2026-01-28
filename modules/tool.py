@@ -23,6 +23,7 @@ if "OJ_FREEZE_TIME" in os.environ:
 cur_data = {}
 detail_data = {}
 detail_max = {k: 0 for k in type_table.keys()}
+maxs = [0,0]
 cur_time_zone = ZoneInfo("Asia/Taipei")
 cache_file = "cache.json"
 if "OJ_CACHE_FILE" in os.environ:
@@ -42,11 +43,21 @@ def update_data():
     problems = {}
     for k in detail_max:
         detail_max[k] = 0
+    easy_max = 0
+    hard_max = 0
     for o in problems_data:
         pid = o["_id"]
         problems[str(o["id"])] = pid
+        easy = pid[0] in "ABCDEGHL" or pid in ("Z01", "Z02")
+        hard = pid[0] in "FGIJKLMN" or pid in ("Z03", "Z04")
         if pid[0].isupper():
             detail_max[pid[0]] += o["total_score"]
+        if easy:
+            easy_max += o["total_score"]
+        if hard:
+            hard_max += o["total_score"]
+    maxs[0] = easy_max
+    maxs[1] = hard_max
 
     for dat in ranking:
         handle = dat["user"]["username"]
@@ -93,5 +104,6 @@ def query_handle(handle):
     return {
         "data": cur_data[handle],
         "last_update": last_update_time.strftime("%Y-%m-%d %H:%M:%S %Z"),
-        "detail": detail_data[handle]
+        "detail": detail_data[handle],
+        "maxs": maxs
     }

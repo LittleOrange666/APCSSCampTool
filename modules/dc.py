@@ -41,8 +41,8 @@ def query_data(username: str) -> str:
                                             1] >= 7900 else f"進階班結業證書尚未達成，還差{7900 - res['data'][1]}分。"
     ret = f"""更新時間: {res['last_update']}
 使用者名稱: {username}
-基礎題進度: {res['data'][0]}/???? (證書標準未定)
-進階題進度: {res['data'][1]}/???? (證書標準未定)"""
+基礎題進度: {res['data'][0]}/{res['maxs'][0]} (證書標準未定)
+進階題進度: {res['data'][1]}/{res['maxs'][1]} (證書標準未定)"""
     return ret
 
 @tree.command(name="查詢證書", description="查詢證書")
@@ -79,7 +79,8 @@ async def query_progress(interaction: discord.Interaction, username: str = None)
         detail = res['detail']
         msg = [f"使用者名稱: {username}", f"更新時間: {res['last_update']}"]
         for k, v in type_table.items():
-            msg.append(f"{k} {v}: {detail[k][0]}/{detail[k][1]}, {detail[k][0] / detail[k][1] * 100:.2f}%")
+            rate = detail[k][0] / (detail[k][1] or 1) * 100
+            msg.append(f"{k} {v}: {detail[k][0]}/{detail[k][1]}, {rate:.2f}%")
         await interaction.followup.send("\n".join(msg))
     except Exception as e:
         traceback.print_exception(e)
