@@ -32,18 +32,21 @@ async def on_ready():
 
 
 def query_data(username: str) -> str:
+    val1 = 9800
+    val2 = 6800
     res = query_handle(username)
     if res is None:
         return f"❌ 使用者 {username!r} 不存在。"
     msg1 = "恭喜獲得基礎班結業證書！" if res['data'][
-                                            0] >= 9600 else f"基礎班結業證書尚未達成，還差{9600 - res['data'][0]}分。"
+                                            0] >= val1 else f"基礎班結業證書尚未達成，還差{val1 - res['data'][0]}分。"
     msg2 = "恭喜獲得進階班結業證書！" if res['data'][
-                                            1] >= 7900 else f"進階班結業證書尚未達成，還差{7900 - res['data'][1]}分。"
+                                            1] >= val2 else f"進階班結業證書尚未達成，還差{val2 - res['data'][1]}分。"
     ret = f"""更新時間: {res['last_update']}
 使用者名稱: {username}
-基礎題進度: {res['data'][0]}/{res['maxs'][0]} (證書標準未定)
-進階題進度: {res['data'][1]}/{res['maxs'][1]} (證書標準未定)"""
+基礎題進度: {res['data'][0]}/{val1}，{msg1}
+進階題進度: {res['data'][1]}/{val2}，{msg2}"""
     return ret
+
 
 @tree.command(name="查詢證書", description="查詢證書")
 @app_commands.describe(username="要查詢的使用者名稱")
@@ -184,6 +187,7 @@ async def count_messages(interaction: discord.Interaction, channel: discord.Text
             traceback.print_exception(e)
             await interaction.followup.send(content=f"❌ 發生錯誤，請洽詢管理員")
 
+
 lang_full_names = {
     "cpp": "C++17",
     "python": "Python3.10.12",
@@ -258,6 +262,7 @@ async def ice_breaker(interaction: discord.Interaction):
         await interaction.response.send_message("❌ 此指令僅能在指定頻道中使用。", ephemeral=True)
         return
     await interaction.response.send_message("Ciallo～(∠・ω< )⌒★")
+
 
 def main():
     bot.run(os.environ["DISCORD_BOT_TOKEN"])

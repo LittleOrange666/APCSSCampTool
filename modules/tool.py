@@ -9,8 +9,8 @@ from .qindaou import QingdaoUOJ
 oj = QingdaoUOJ()
 
 type_table = {'A': '變數/輸入輸出', 'B': '條件判斷/迴圈', 'C': '陣列/字串', 'D': '函式/遞迴', 'E': '結構',
-              'G': '資料結構', 'L': '實作與除錯技巧', 'H': '考古題解析 (p1,p2)', 'F': '時間複雜度', 'I': '枚舉/二分搜',
-              'J': '貪心', 'K': '圖論', 'M': '動態規劃', 'N': '考古題解析 (p3, p4)', 'Z': '模擬測驗 (p1, p2, p3, p4)'}
+              'G': '資料結構', 'L': '實作與除錯技巧', 'H': '運算思維實作實務解析 (基礎)', 'F': '時間複雜度', 'I': '枚舉/二分搜',
+              'J': '貪心', 'K': '圖論', 'M': '動態規劃', 'N': '運算思維實作實務解析 (進階)', 'Z': '運算思維實作挑戰賽'}
 
 freeze_time = None
 freeze = False
@@ -23,11 +23,19 @@ if "OJ_FREEZE_TIME" in os.environ:
 cur_data = {}
 detail_data = {}
 detail_max = {k: 0 for k in type_table.keys()}
-maxs = [0,0]
+maxs = [0, 0]
 cur_time_zone = ZoneInfo("Asia/Taipei")
 cache_file = "cache.json"
 if "OJ_CACHE_FILE" in os.environ:
     cache_file = os.environ["OJ_CACHE_FILE"].strip()
+
+
+def is_easy(pid):
+    return pid[0] in "ABCDEGHL" or pid in ("Z01", "Z02", "Z03")
+
+
+def is_hard(pid):
+    return pid[0] in "FIJKMN" or pid in ("Z04", "Z05", "Z06")
 
 
 def update_data():
@@ -48,8 +56,8 @@ def update_data():
     for o in problems_data:
         pid = o["_id"]
         problems[str(o["id"])] = pid
-        easy = pid[0] in "ABCDEGHL" or pid in ("Z01", "Z02")
-        hard = pid[0] in "FGIJKLMN" or pid in ("Z03", "Z04")
+        easy = is_easy(pid)
+        hard = is_hard(pid)
         if pid[0].isupper():
             detail_max[pid[0]] += o["total_score"]
         if easy:
@@ -68,8 +76,8 @@ def update_data():
             if k not in problems:
                 continue
             pid = problems[k]
-            easy = pid[0] in "ABCDEGHL" or pid in ("Z01", "Z02")
-            hard = pid[0] in "FGIJKLMN" or pid in ("Z03", "Z04")
+            easy = is_easy(pid)
+            hard = is_hard(pid)
             if easy:
                 score_1 += v
             if hard:
