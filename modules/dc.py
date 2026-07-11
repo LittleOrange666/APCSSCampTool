@@ -280,6 +280,25 @@ async def ice_breaker(interaction: discord.Interaction):
     await interaction.response.send_message("Ciallo～(∠・ω< )⌒★")
 
 
+convenor_pat = re.compile(r"^\[(.+?)\]\s+(.+)$")
+
+
+@tree.command(name="總召", description="總召")
+async def convenor(interaction: discord.Interaction, user: discord.User | None = None):
+    if interaction.channel_id not in allowed_channel_ids and not allowed_any_channel:
+        await interaction.response.send_message("❌ 此指令僅能在指定頻道中使用。", ephemeral=True)
+        return
+    if user is None:
+        user = interaction.user
+    name = user.display_name
+    res = convenor_pat.match(name)
+    if res:
+        name = "[總召/" + res.group(1) + "] " + res.group(2)
+    else:
+        name = "[總召] " + name
+    await interaction.response.send_message(f"你好，@{name}")
+
+
 def main():
     bot.run(os.environ["DISCORD_BOT_TOKEN"])
 
