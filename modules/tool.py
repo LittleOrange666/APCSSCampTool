@@ -9,8 +9,8 @@ from .qindaou import QingdaoUOJ
 oj = QingdaoUOJ()
 
 type_table = {'A': '變數/輸入輸出', 'B': '條件判斷/迴圈', 'C': '陣列/字串', 'D': '函式/遞迴', 'E': '結構',
-              'G': '資料結構', 'L': '實作與除錯技巧', 'H': '運算思維實作實務解析 (基礎)', 'F': '時間複雜度', 'I': '枚舉/二分搜',
-              'J': '貪心', 'K': '圖論', 'M': '動態規劃', 'N': '運算思維實作實務解析 (進階)', 'Z': '運算思維實作挑戰賽'}
+              'G': '資料結構', 'L': '實作與除錯技巧', 'H': '考古題解析 (基礎)', 'F': '時間複雜度', 'I': '枚舉/二分搜',
+              'J': '貪心', 'K': '圖論', 'M': '動態規劃', 'N': '考古題解析 (進階)', 'Z': '運算思維實作挑戰賽'}
 
 freeze_time = None
 freeze = False
@@ -28,6 +28,16 @@ cur_time_zone = ZoneInfo("Asia/Taipei")
 cache_file = "cache.json"
 if "OJ_CACHE_FILE" in os.environ:
     cache_file = os.environ["OJ_CACHE_FILE"].strip()
+
+name_table = {}
+if os.path.exists("data/names.csv"):
+    with open("data/names.csv", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            oj_handle, name = line.split(",", 1)
+            name_table[oj_handle] = name
 
 
 def is_easy(pid):
@@ -108,6 +118,13 @@ def get_data():
 def query_handle(handle):
     get_data()
     if handle not in cur_data:
+        if handle in name_table:
+            return {
+                "data": [0, 0],
+                "last_update": last_update_time.strftime("%Y-%m-%d %H:%M:%S %Z"),
+                "detail": {k: [0, detail_max[k]] for k in type_table.keys()},
+                "maxs": maxs
+            }
         return None
     return {
         "data": cur_data[handle],

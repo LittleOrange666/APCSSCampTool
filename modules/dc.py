@@ -9,7 +9,7 @@ import discord
 from discord import app_commands
 from discord.ui import Modal, TextInput
 
-from .tool import query_handle, type_table, get_data
+from .tool import query_handle, type_table, get_data, name_table
 from .submit import run
 
 intents = discord.Intents.all()
@@ -31,7 +31,7 @@ async def on_ready():
     print(f"載入 {len(slash)} 個斜線指令")
 
 
-def query_data(username: str) -> str:
+def query_data_(username: str) -> str:
     val1 = 9800
     val2 = 6800
     res = query_handle(username)
@@ -45,6 +45,22 @@ def query_data(username: str) -> str:
 使用者名稱: {username}
 基礎題進度: {res['data'][0]}/{val1}，{msg1}
 進階題進度: {res['data'][1]}/{val2}，{msg2}"""
+    return ret
+
+
+def query_data(username: str) -> str:  # 證書未定義的臨時格式
+    res = query_handle(username)
+    if res is None:
+        return f"❌ 使用者 {username!r} 不存在。"
+    ex = ""
+    if username not in name_table:
+        ex = "\n[警告] 此使用者名稱不是標準帳號，無法用於申請證書"
+    else:
+        ex = f" {name_table[username]}"
+    ret = f"""更新時間: {res['last_update']}
+使用者名稱: {username} {ex}
+基礎題進度: {res['data'][0]}/????
+進階題進度: {res['data'][1]}/????"""
     return ret
 
 
