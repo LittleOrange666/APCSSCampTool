@@ -56,7 +56,7 @@ def query_data(username: str) -> str:  # 證書未定義的臨時格式
     if username not in name_table:
         ex = "\n[警告] 此使用者名稱不是標準帳號，無法用於申請證書"
     else:
-        ex = f" {name_table[username]}"
+        ex = f" (標準帳號)"
     ret = f"""更新時間: {res['last_update']}
 使用者名稱: {username} {ex}
 基礎題進度: {res['data'][0]}/????
